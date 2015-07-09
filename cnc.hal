@@ -1,0 +1,32 @@
+loadrt trivkins
+loadrt tp
+
+loadrt hostmot2
+loadrt hm2_eth board_ip="192.168.1.121" config="num_encoders=2,num_stepgens=4"
+loadrt [EMCMOT]EMCMOT  servo_period_nsec=[EMCMOT]SERVO_PERIOD num_joints=[TRAJ]AXES kins=trivkins tp=tp
+
+addf motion-command-handler servo-thread
+addf motion-controller servo-thread
+
+addf hm2_7i80.0.write servo-thread
+addf hm2_7i80.0.read servo-thread
+
+setp hm2_7i80.0.stepgen.00.dirsetup		[AXIS_0]DIRSETUP
+setp hm2_7i80.0.stepgen.00.dirhold		[AXIS_0]DIRHOLD
+setp hm2_7i80.0.stepgen.00.steplen		[AXIS_0]STEPLEN
+setp hm2_7i80.0.stepgen.00.stepspace		[AXIS_0]STEPSPACE
+setp hm2_7i80.0.stepgen.00.position-scale	[AXIS_0]STEP_SCALE
+setp hm2_7i80.0.stepgen.00.step_type		0
+setp hm2_7i80.0.stepgen.00.control-type		0
+setp hm2_7i80.0.stepgen.00.maxaccel		600.0
+setp hm2_7i80.0.stepgen.00.maxvel		600.0
+
+net Xpos-cmd axis.0.motor-pos-cmd => hm2_7i80.0.stepgen.00.position-cmd
+net Xpos-fb axis.0.motor-pos-fb hm2_7i80.0.stepgen.00.position-fb
+net X-enable axis.0.amp-enable-out => hm2_7i80.0.stepgen.00.enable
+
+
+net Ypos-cmd axis.1.motor-pos-cmd => axis.1.motor-pos-fb
+net Zpos-cmd axis.2.motor-pos-cmd => axis.2.motor-pos-fb
+
+net estop-loop iocontrol.0.user-enable-out iocontrol.0.emc-enable-in
